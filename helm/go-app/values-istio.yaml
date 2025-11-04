@@ -1,0 +1,137 @@
+# Istio-specific values for go-app
+# Use this file when deploying with Istio service mesh
+
+replicaCount: 3
+
+image:
+  repository: your-registry/go-app
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+serviceAccount:
+  create: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Enable Istio features
+istio:
+  enabled: true
+
+  # VirtualService for traffic routing
+  virtualService:
+    enabled: true
+    gateways:
+      - istio-system/main-gateway
+    hosts:
+      - myapp.example.com
+    http:
+      - match:
+          - uri:
+              prefix: /
+        route:
+          - destination:
+              host: go-app
+              port:
+                number: 80
+            weight: 100
+        timeout: 30s
+        retries:
+          attempts: 3
+          perTryTimeout: 10s
+          retryOn: gateway-error,connect-failure,refused-stream
+
+  # DestinationRule for load balancing and circuit breaking
+  destinationRule:
+    enabled: true
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          http1MaxPendingRequests: 50
+          http2MaxRequests: 100
+          maxRequestsPerConnection: 2
+      loadBalancer:
+        simple: LEAST_CONN
+      outlierDetection:
+        consecutiveErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+        minHealthPercent: 50
+
+  # Enable mTLS
+  peerAuthentication:
+    enabled: true
+    mtls:
+      mode: STRICT
+
+  # Optional: Create your own gateway
+  gateway:
+    enabled: false
+    servers:
+      - port:
+          number: 80
+          name: http
+          protocol: HTTP
+        hosts:
+          - "*"
+      - port:
+          number: 443
+          name: https
+          protocol: HTTPS
+        tls:
+          mode: SIMPLE
+          credentialName: myapp-tls
+        hosts:
+          - "*"
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 15
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 75
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - go-app
+          topologyKey: kubernetes.io/hostname
+
+env:
+  - name: ENVIRONMENT
+    value: "production"
+  - name: PORT
+    value: "8080"
+  - name: HOST
+    value: "0.0.0.0"
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  path: /metrics
+  labels:
+    release: prometheus

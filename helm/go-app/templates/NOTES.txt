@@ -1,0 +1,77 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+The application is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ (index .paths 0).path }}
+{{- end }}
+{{- else if .Values.istio.enabled }}
+{{- if .Values.istio.virtualService.enabled }}
+
+Istio VirtualService has been configured for:
+{{- range .Values.istio.virtualService.hosts }}
+  - {{ . }}
+{{- end }}
+
+To access your application, ensure you have an Istio Gateway configured and get the ingress gateway IP:
+
+  export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+  echo "Application URL: http://$INGRESS_HOST:$INGRESS_PORT"
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+
+Get the application URL by running:
+
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "go-app.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Application URL: http://$NODE_IP:$NODE_PORT"
+
+{{- else if contains "LoadBalancer" .Values.service.type }}
+
+Get the application URL by running:
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        Watch the status with: kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "go-app.fullname" . }}
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "go-app.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo "Application URL: http://$SERVICE_IP:{{ .Values.service.port }}"
+
+{{- else if contains "ClusterIP" .Values.service.type }}
+
+To access the application, you can port-forward:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "go-app.fullname" . }} 8080:{{ .Values.service.port }}
+  echo "Application URL: http://127.0.0.1:8080"
+
+{{- end }}
+
+Health Endpoints:
+  - Health Check: /health
+  - Readiness: /health/ready
+  - Liveness: /health/live
+  - Metrics: /metrics
+
+{{- if .Values.autoscaling.enabled }}
+
+Horizontal Pod Autoscaling is enabled:
+  - Min Replicas: {{ .Values.autoscaling.minReplicas }}
+  - Max Replicas: {{ .Values.autoscaling.maxReplicas }}
+  {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+  - Target CPU: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}%
+  {{- end }}
+  {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  - Target Memory: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}%
+  {{- end }}
+
+{{- end }}
+
+For more information, visit: https://github.com/yourusername/go-app

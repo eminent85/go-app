@@ -1,0 +1,13 @@
+{{- if and .Values.istio.enabled .Values.istio.gateway.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "go-app.fullname" . }}
+  labels:
+    {{- include "go-app.labels" . | nindent 4 }}
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    {{- toYaml .Values.istio.gateway.servers | nindent 4 }}
+{{- end }}
