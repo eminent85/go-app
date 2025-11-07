@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -94,6 +95,26 @@ func TestAverageDuration(t *testing.T) {
 
 	if avg < expected-tolerance || avg > expected+tolerance {
 		t.Errorf("Expected average duration around %v, got %v", expected, avg)
+	}
+}
+
+func TestAverageDurationOverflow(t *testing.T) {
+	m := New()
+
+	// Simulate a scenario with very large total duration
+	// Set totalDuration to a value that would overflow int64 if not handled
+	m.RecordRequest()
+	// Directly set a very large totalDuration using atomic operation
+	// This simulates extreme edge case where average would overflow
+	atomic.StoreUint64(&m.totalDuration, uint64(1<<63))
+
+	// Should not panic and should return max duration
+	avg := m.AverageDuration()
+
+	// Should return max int64 duration
+	maxDuration := time.Duration(1<<63 - 1)
+	if avg != maxDuration {
+		t.Errorf("Expected max duration %v on overflow, got %v", maxDuration, avg)
 	}
 }
 

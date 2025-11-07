@@ -5,7 +5,7 @@
 replicaCount: 2
 
 image:
-  repository: your-registry/go-app
+  repository: us-west1-docker.pkg.dev/ascent-wow-bot/eminent-container-image/go-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

@@ -67,7 +67,15 @@ func (m *Metrics) AverageDuration() time.Duration {
 		return 0
 	}
 	totalNanos := atomic.LoadUint64(&m.totalDuration)
-	return time.Duration(totalNanos / count)
+	avgNanos := totalNanos / count
+
+	// Check for overflow before converting to int64
+	if avgNanos > uint64(1<<63-1) {
+		// Return max duration if overflow would occur
+		return time.Duration(1<<63 - 1)
+	}
+
+	return time.Duration(avgNanos)
 }
 
 // Uptime returns the server uptime.
