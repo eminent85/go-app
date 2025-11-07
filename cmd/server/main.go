@@ -21,7 +21,12 @@ import (
 	"github.com/yourusername/go-app/pkg/health"
 )
 
-const version = "1.0.0"
+// Build-time variables injected via ldflags
+var (
+	version = "dev"       // -X main.version=<version>
+	commit  = "unknown"   // -X main.commit=<commit>
+	date    = "unknown"   // -X main.date=<date>
+)
 
 func main() {
 	// Load configuration
@@ -47,7 +52,8 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on %s (environment: %s)", cfg.Server.Address(), cfg.Server.Environment)
+		log.Printf("Starting server on %s (environment: %s, version: %s, commit: %s)",
+			cfg.Server.Address(), cfg.Server.Environment, version, commit)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}

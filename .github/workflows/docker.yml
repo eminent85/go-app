@@ -23,6 +23,37 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper version detection
+
+    - name: Calculate version
+      id: version
+      run: |
+        # Get the latest git tag (if any)
+        GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+        # Remove 'v' prefix if present
+        VERSION=${GIT_TAG#v}
+
+        # Get commit count since last tag
+        COMMIT_COUNT=$(git rev-list --count ${GIT_TAG}..HEAD 2>/dev/null || git rev-list --count HEAD)
+
+        # Get short commit hash
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+
+        # Get commit date
+        BUILD_DATE=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+        # If we're not on a tagged commit, append build metadata
+        if [ "$COMMIT_COUNT" != "0" ]; then
+          # Use semver format: MAJOR.MINOR.PATCH-dev.BUILD+COMMIT
+          VERSION="${VERSION}-dev.${COMMIT_COUNT}+${COMMIT_HASH}"
+        fi
+
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "commit=$COMMIT_HASH" >> $GITHUB_OUTPUT
+        echo "date=$BUILD_DATE" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION (commit: $COMMIT_HASH, date: $BUILD_DATE)"
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -59,6 +90,10 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        build-args: |
+          VERSION=${{ steps.version.outputs.version }}
+          COMMIT=${{ steps.version.outputs.commit }}
+          BUILD_DATE=${{ steps.version.outputs.date }}
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
