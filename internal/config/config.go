@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-// Config holds all application configuration
+// Config holds all application configuration.
 type Config struct {
 	Server   ServerConfig
 	RateLimit RateLimitConfig
 }
 
-// ServerConfig holds server-specific configuration
+// ServerConfig holds server-specific configuration.
 type ServerConfig struct {
 	Port            string
 	Host            string
@@ -24,13 +24,13 @@ type ServerConfig struct {
 	Environment     string
 }
 
-// RateLimitConfig holds rate limiting configuration
+// RateLimitConfig holds rate limiting configuration.
 type RateLimitConfig struct {
 	RequestsPerSecond int
 	Burst             int
 }
 
-// Load reads configuration from environment variables with sensible defaults
+// Load reads configuration from environment variables with sensible defaults.
 func Load() (*Config, error) {
 	config := &Config{
 		Server: ServerConfig{
@@ -51,7 +51,7 @@ func Load() (*Config, error) {
 	return config, nil
 }
 
-// getEnv retrieves an environment variable or returns a default value
+// getEnv retrieves an environment variable or returns a default value.
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -59,7 +59,7 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// getEnvInt retrieves an integer environment variable or returns a default value
+// getEnvInt retrieves an integer environment variable or returns a default value.
 func getEnvInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		if intVal, err := strconv.Atoi(value); err == nil {
@@ -69,7 +69,7 @@ func getEnvInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
-// getEnvDuration retrieves a duration environment variable or returns a default value
+// getEnvDuration retrieves a duration environment variable or returns a default value.
 func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	if value := os.Getenv(key); value != "" {
 		if duration, err := time.ParseDuration(value); err == nil {
@@ -79,7 +79,7 @@ func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	return defaultValue
 }
 
-// Address returns the full server address
+// Address returns the full server address.
 func (c *ServerConfig) Address() string {
 	return fmt.Sprintf("%s:%s", c.Host, c.Port)
 }

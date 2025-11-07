@@ -7,7 +7,7 @@ import (
 	"github.com/eminent85/go-app/internal/metrics"
 )
 
-// MetricsResponse represents the metrics endpoint response
+// MetricsResponse represents the metrics endpoint response.
 type MetricsResponse struct {
 	TotalRequests   uint64         `json:"total_requests"`
 	ActiveRequests  int64          `json:"active_requests"`
@@ -18,7 +18,7 @@ type MetricsResponse struct {
 	StatusCodes     map[int]uint64 `json:"status_codes"`
 }
 
-// MetricsHandler returns metrics data
+// MetricsHandler returns metrics data.
 func MetricsHandler(m *metrics.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		response := MetricsResponse{
@@ -33,11 +33,11 @@ func MetricsHandler(m *metrics.Metrics) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}
 }
 
-// HelloHandler is a simple example endpoint
+// HelloHandler is a simple example endpoint.
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{
 		"message": "Hello, World!",
@@ -45,10 +45,10 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
-// NotFoundHandler handles 404 errors
+// NotFoundHandler handles 404 errors.
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{
 		"error": "Resource not found",
@@ -56,5 +56,5 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }

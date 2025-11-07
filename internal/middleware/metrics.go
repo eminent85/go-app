@@ -7,7 +7,7 @@ import (
 	"github.com/eminent85/go-app/internal/metrics"
 )
 
-// Metrics middleware tracks request metrics
+// Metrics middleware tracks request metrics.
 func Metrics(m *metrics.Metrics) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

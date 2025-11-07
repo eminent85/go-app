@@ -12,7 +12,7 @@ func TestHandler(t *testing.T) {
 	version := "1.0.0"
 	startTime := time.Now()
 
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler := Handler(version, startTime)
@@ -46,7 +46,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestReadinessHandler(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health/ready", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler := ReadinessHandler()
@@ -63,7 +63,7 @@ func TestReadinessHandler(t *testing.T) {
 }
 
 func TestLivenessHandler(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/health/live", nil)
+	req := httptest.NewRequest(http.MethodGet, "/health/live", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler := LivenessHandler()

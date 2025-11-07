@@ -6,7 +6,32 @@ run:
   modules-download-mode: readonly
 
 linters:
-  default: all
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gocyclo
+    - dupl
+    - goconst
+    - misspell
+    - lll
+    - gocritic
+    - godot
+  disable:
+    - depguard
+    - exhaustruct
+    - varnamelen
+    - paralleltest
+    - testpackage
+    - gochecknoglobals
+    - tagliatelle
+    - noinlineerr
+    - usetesting
+    - mnd
+    - nlreturn
+    - wsl
   settings:
     gocyclo:
       min-complexity: 15

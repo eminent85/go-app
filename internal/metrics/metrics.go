@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Metrics holds application metrics
+// Metrics holds application metrics.
 type Metrics struct {
 	requestCount   uint64
 	errorCount     uint64
@@ -17,7 +17,7 @@ type Metrics struct {
 	statusCodes    map[int]uint64
 }
 
-// New creates a new Metrics instance
+// New creates a new Metrics instance.
 func New() *Metrics {
 	return &Metrics{
 		startTime:   time.Now(),
@@ -25,13 +25,13 @@ func New() *Metrics {
 	}
 }
 
-// RecordRequest increments the request counter
+// RecordRequest increments the request counter.
 func (m *Metrics) RecordRequest() {
 	atomic.AddUint64(&m.requestCount, 1)
 	atomic.AddInt64(&m.activeRequests, 1)
 }
 
-// RecordResponse records response metrics
+// RecordResponse records response metrics.
 func (m *Metrics) RecordResponse(statusCode int, duration time.Duration) {
 	atomic.AddInt64(&m.activeRequests, -1)
 	atomic.AddUint64(&m.totalDuration, uint64(duration.Nanoseconds()))
@@ -45,22 +45,22 @@ func (m *Metrics) RecordResponse(statusCode int, duration time.Duration) {
 	}
 }
 
-// RequestCount returns the total number of requests
+// RequestCount returns the total number of requests.
 func (m *Metrics) RequestCount() uint64 {
 	return atomic.LoadUint64(&m.requestCount)
 }
 
-// ErrorCount returns the total number of 5xx errors
+// ErrorCount returns the total number of 5xx errors.
 func (m *Metrics) ErrorCount() uint64 {
 	return atomic.LoadUint64(&m.errorCount)
 }
 
-// ActiveRequests returns the current number of active requests
+// ActiveRequests returns the current number of active requests.
 func (m *Metrics) ActiveRequests() int64 {
 	return atomic.LoadInt64(&m.activeRequests)
 }
 
-// AverageDuration returns the average request duration
+// AverageDuration returns the average request duration.
 func (m *Metrics) AverageDuration() time.Duration {
 	count := atomic.LoadUint64(&m.requestCount)
 	if count == 0 {
@@ -70,12 +70,12 @@ func (m *Metrics) AverageDuration() time.Duration {
 	return time.Duration(totalNanos / count)
 }
 
-// Uptime returns the server uptime
+// Uptime returns the server uptime.
 func (m *Metrics) Uptime() time.Duration {
 	return time.Since(m.startTime)
 }
 
-// StatusCodes returns a copy of status code counts
+// StatusCodes returns a copy of status code counts.
 func (m *Metrics) StatusCodes() map[int]uint64 {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -87,7 +87,7 @@ func (m *Metrics) StatusCodes() map[int]uint64 {
 	return codes
 }
 
-// ErrorRate returns the error rate as a percentage
+// ErrorRate returns the error rate as a percentage.
 func (m *Metrics) ErrorRate() float64 {
 	requests := atomic.LoadUint64(&m.requestCount)
 	if requests == 0 {

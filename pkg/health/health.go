@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Status represents the health status
+// Status represents the health status.
 type Status string
 
 const (
@@ -14,7 +14,7 @@ const (
 	StatusUnhealthy Status = "unhealthy"
 )
 
-// Response represents a health check response
+// Response represents a health check response.
 type Response struct {
 	Status    Status    `json:"status"`
 	Timestamp time.Time `json:"timestamp"`
@@ -22,7 +22,7 @@ type Response struct {
 	Uptime    string    `json:"uptime,omitempty"`
 }
 
-// Handler returns an HTTP handler for health checks
+// Handler returns an HTTP handler for health checks.
 func Handler(version string, startTime time.Time) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		response := Response{
@@ -34,24 +34,24 @@ func Handler(version string, startTime time.Time) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 	}
 }
 
-// ReadinessHandler returns an HTTP handler for readiness checks
+// ReadinessHandler returns an HTTP handler for readiness checks.
 func ReadinessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Add any checks for external dependencies here
 		// For now, we're always ready
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ready"))
+		_, _ = w.Write([]byte("ready"))
 	}
 }
 
-// LivenessHandler returns an HTTP handler for liveness checks
+// LivenessHandler returns an HTTP handler for liveness checks.
 func LivenessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("alive"))
+		_, _ = w.Write([]byte("alive"))
 	}
 }

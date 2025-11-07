@@ -21,11 +21,10 @@ import (
 	"github.com/eminent85/go-app/pkg/health"
 )
 
-// Build-time variables injected via ldflags
+// Build-time variables injected via ldflags.
 var (
 	version = "dev"     // -X main.version=<version>
 	commit  = "unknown" // -X main.commit=<commit>
-	date    = "unknown" // -X main.date=<date>
 )
 
 func main() {

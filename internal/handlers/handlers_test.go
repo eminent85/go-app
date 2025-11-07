@@ -10,7 +10,7 @@ import (
 )
 
 func TestHelloHandler(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/hello", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/hello", http.NoBody)
 	w := httptest.NewRecorder()
 
 	HelloHandler(w, req)
@@ -35,7 +35,7 @@ func TestHelloHandler(t *testing.T) {
 }
 
 func TestNotFoundHandler(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
+	req := httptest.NewRequest(http.MethodGet, "/nonexistent", http.NoBody)
 	w := httptest.NewRecorder()
 
 	NotFoundHandler(w, req)
@@ -63,7 +63,7 @@ func TestMetricsHandler(t *testing.T) {
 	m.RecordRequest()
 	m.RecordResponse(500, 200)
 
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req := httptest.NewRequest(http.MethodGet, "/metrics", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler := MetricsHandler(m)
