@@ -123,13 +123,18 @@ jobs:
 
         # If we're not on a tagged commit, append build metadata
         if [ "$COMMIT_COUNT" != "0" ]; then
-          # Use semver format: MAJOR.MINOR.PATCH-dev.BUILD+COMMIT
+          # Semver format for binary: MAJOR.MINOR.PATCH-dev.BUILD+COMMIT
           VERSION="${VERSION}-dev.${COMMIT_COUNT}+${COMMIT_HASH}"
+          # Docker-compatible tag (replace + with -): MAJOR.MINOR.PATCH-dev.BUILD-COMMIT
+          DOCKER_TAG="${VERSION/+/-}"
+        else
+          DOCKER_TAG="$VERSION"
         fi
 
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "docker_tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
         echo "commit=$COMMIT_HASH" >> $GITHUB_OUTPUT
-        echo "Building version: $VERSION (commit: $COMMIT_HASH)"
+        echo "Building version: $VERSION (Docker tag: $DOCKER_TAG, commit: $COMMIT_HASH)"
 
     - name: Build binary
       run: |
@@ -148,7 +153,7 @@ jobs:
       run: |
         docker buildx build \
           --target runtime-prebuilt \
-          --tag go-app:${{ steps.version.outputs.version }} \
+          --tag go-app:${{ steps.version.outputs.docker_tag }} \
           --tag go-app:latest \
           --load \
           .
@@ -170,13 +175,13 @@ jobs:
 
     - name: Save Docker image as artifact
       run: |
-        docker save go-app:${{ steps.version.outputs.version }} | gzip > go-app-${{ steps.version.outputs.version }}.tar.gz
+        docker save go-app:${{ steps.version.outputs.docker_tag }} | gzip > go-app-${{ steps.version.outputs.docker_tag }}.tar.gz
 
     - name: Upload Docker image artifact
       uses: actions/upload-artifact@v5
       with:
         name: docker-image
-        path: go-app-${{ steps.version.outputs.version }}.tar.gz
+        path: go-app-${{ steps.version.outputs.docker_tag }}.tar.gz
         retention-days: 7
 
 

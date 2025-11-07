@@ -14,6 +14,7 @@ docker build -t go-app:latest .
 docker build \
   --build-arg VERSION=1.0.0 \
   --build-arg COMMIT=$(git rev-parse --short HEAD) \
+  --target runtime \
   -t go-app:1.0.0 \
   .
 
@@ -84,16 +85,31 @@ Available variables:
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) uses the prebuilt binary mode:
 
-1. Builds the binary with Go in the CI environment
-2. Uses `--target runtime-prebuilt` to create a minimal Docker image
-3. Tests the image by running it and checking the health endpoint
-4. Saves the image as an artifact
+1. Calculates version information from git tags and commits
+2. Builds the binary with Go in the CI environment (with semver format)
+3. Uses `--target runtime-prebuilt` to create a minimal Docker image
+4. Tags the image with a Docker-compatible version (replaces `+` with `-`)
+5. Tests the image by running it and checking the health endpoint
+6. Saves the image as an artifact
+
+### Version Format
+
+The workflow generates two version strings:
+
+- **Binary version** (semver): `0.0.0-dev.14+6636b22`
+  - Used in `-ldflags` for the binary
+  - Follows semantic versioning specification
+
+- **Docker tag** (Docker-compatible): `0.0.0-dev.14-6636b22`
+  - Used for Docker image tags
+  - Replaces `+` with `-` (Docker doesn't allow `+` in tags)
 
 This approach provides:
 - **Faster builds**: Binary is cached and reused
 - **Smaller images**: Uses `scratch` as base (~10MB final image)
 - **Better security**: Minimal attack surface with no shell or OS packages
 - **Efficient caching**: Go build cache works across builds
+- **Compliant versioning**: Semver for binaries, Docker-safe for images
 
 ## Image Details
 
