@@ -263,11 +263,11 @@ jobs:
       uses: actions/upload-artifact@v5
       with:
         name: helm-charts
-        path: ./helm-charts/*.tgz
+        path: ./helm/go-app/helm-charts/*.tgz
         retention-days: 1
 
   push-to-gcp:
-    name: Push to GCP Artifact Registry
+    name: Push image & charts to GCP
     runs-on: ubuntu-latest
     needs: [build-and-docker, build-helm-charts]
     environment: main
