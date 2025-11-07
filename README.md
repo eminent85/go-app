@@ -34,7 +34,7 @@ A production-ready, high-performance Go backend web application designed to hand
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/go-app.git
+git clone https://github.com/eminent85/go-app.git
 cd go-app
 
 # Download dependencies
@@ -235,7 +235,7 @@ spec:
     spec:
       containers:
       - name: go-app
-        image: ghcr.io/yourusername/go-app:latest
+        image: ghcr.io/eminent85/go-app:latest
         ports:
         - containerPort: 8080
         env:

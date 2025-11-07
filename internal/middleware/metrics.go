@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/yourusername/go-app/internal/metrics"
+	"github.com/eminent85/go-app/internal/metrics"
 )
 
 // Metrics middleware tracks request metrics

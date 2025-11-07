@@ -14,18 +14,18 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
 
-	"github.com/yourusername/go-app/internal/config"
-	"github.com/yourusername/go-app/internal/handlers"
-	customMiddleware "github.com/yourusername/go-app/internal/middleware"
-	"github.com/yourusername/go-app/internal/metrics"
-	"github.com/yourusername/go-app/pkg/health"
+	"github.com/eminent85/go-app/internal/config"
+	"github.com/eminent85/go-app/internal/handlers"
+	"github.com/eminent85/go-app/internal/metrics"
+	customMiddleware "github.com/eminent85/go-app/internal/middleware"
+	"github.com/eminent85/go-app/pkg/health"
 )
 
 // Build-time variables injected via ldflags
 var (
-	version = "dev"       // -X main.version=<version>
-	commit  = "unknown"   // -X main.commit=<commit>
-	date    = "unknown"   // -X main.date=<date>
+	version = "dev"     // -X main.version=<version>
+	commit  = "unknown" // -X main.commit=<commit>
+	date    = "unknown" // -X main.date=<date>
 )
 
 func main() {

@@ -74,4 +74,4 @@ Horizontal Pod Autoscaling is enabled:
 
 {{- end }}
 
-For more information, visit: https://github.com/yourusername/go-app
+For more information, visit: https://github.com/eminent85/go-app

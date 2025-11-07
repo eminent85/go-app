@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/yourusername/go-app/internal/metrics"
+	"github.com/eminent85/go-app/internal/metrics"
 )
 
 func TestHelloHandler(t *testing.T) {
