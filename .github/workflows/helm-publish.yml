@@ -1,12 +1,12 @@
 name: Helm Chart Publish
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'helm/**'
-      - '.github/helm-version.txt'
-      - '.github/workflows/helm-publish.yml'
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'helm/**'
+  #     - '.github/helm-version.txt'
+  #     - '.github/workflows/helm-publish.yml'
   workflow_dispatch:
     inputs:
       version_bump:
