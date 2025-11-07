@@ -9,7 +9,6 @@ keywords:
   - web-service
   - api
 maintainers:
-  - name: Your Name
-    email: you@example.com
+  - name: Justin Beeman
 sources:
   - https://github.com/eminent85/go-app

@@ -169,6 +169,97 @@ jobs:
         path: go-app-${{ steps.version.outputs.docker_tag }}.tar.gz
         retention-days: 1
 
+  build-helm-charts:
+    name: Build Helm Charts
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+
+    defaults:
+      run:
+        working-directory: ./helm/go-app
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper version detection
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: 'latest'
+
+    - name: Calculate version
+      id: version
+      run: |
+        # Get the latest git tag (if any)
+        GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+        # Remove 'v' prefix if present
+        VERSION=${GIT_TAG#v}
+
+        # Get commit count since last tag
+        COMMIT_COUNT=$(git rev-list --count ${GIT_TAG}..HEAD 2>/dev/null || git rev-list --count HEAD)
+
+        # Get short commit hash
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+
+        # If we're not on a tagged commit, append build metadata
+        if [ "$COMMIT_COUNT" != "0" ]; then
+          # Helm chart version (semver compliant, no + allowed)
+          CHART_VERSION="${VERSION}-dev.${COMMIT_COUNT}"
+          # Docker tag
+          DOCKER_TAG="${VERSION}-dev.${COMMIT_COUNT}-${COMMIT_HASH}"
+        else
+          CHART_VERSION="$VERSION"
+          DOCKER_TAG="$VERSION"
+        fi
+
+        echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "docker_tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
+        echo "Building Helm chart version: $CHART_VERSION (app version: $VERSION, docker tag: $DOCKER_TAG)"
+
+    - name: Update Chart.yaml with calculated version
+      run: |
+        sed -i "s/^version:.*/version: ${{ steps.version.outputs.chart_version }}/" ./Chart.yaml
+        sed -i "s/^appVersion:.*/appVersion: \"${{ steps.version.outputs.app_version }}\"/" ./Chart.yaml
+        echo "Updated Chart.yaml:"
+        cat ./Chart.yaml
+
+    - name: Update values.yaml with image repository and tag
+      run: |
+        # Define registry details
+        REGISTRY="${{ vars.GCP_REGION }}-docker.pkg.dev"
+        PROJECT="${{ vars.GCP_PROJECT_ID }}"
+        REPOSITORY="${{ secrets.GCP_ARTIFACT_REGISTRY_REPO }}"
+        IMAGE_NAME="go-app"
+
+        # Full image repository path
+        IMAGE_REPOSITORY="${REGISTRY}/${PROJECT}/${REPOSITORY}/${IMAGE_NAME}"
+
+        # Update values.yaml
+        sed -i "s|repository:.*|repository: ${IMAGE_REPOSITORY}|" ./values.yaml
+        sed -i 's|tag:.*|tag: "${{ steps.version.outputs.docker_tag }}"|' ./values.yaml
+
+        echo "Updated values.yaml image section:"
+        grep -A 3 "^image:" ./values.yaml
+
+    - name: Lint Helm chart
+      run: |
+        helm lint .
+
+    - name: Package Helm chart
+      run: |
+        helm package . --destination ./helm-charts
+
+    - name: Upload Helm chart artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: helm-charts
+        path: ./helm-charts/*.tgz
+        retention-days: 1
+
   push-to-gcp:
     name: Push to GCP Artifact Registry
     runs-on: ubuntu-latest
