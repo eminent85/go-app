@@ -25,23 +25,23 @@ jobs:
     secrets:
       gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
 
-  # bootstrap-flux:
-  #   name: Bootstrap FluxCD
-  #   needs: create-cluster
-  #   uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
-  #   permissions:
-  #     id-token: write
-  #     contents: write
-  #   with:
-  #     cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
-  #     cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
-  #     gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-  #     flux_path: './clusters/ephemeral'
-  #     flux_branch: 'main'
-  #     app_namespace: 'ephemeral'
-  #   secrets:
-  #     gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
-  #     flux_github_token: ${{ secrets.FLUX_GITHUB_TOKEN }}
+  bootstrap-flux:
+    name: Bootstrap FluxCD
+    needs: create-cluster
+    uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
+    permissions:
+      id-token: write
+      contents: write
+    with:
+      cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
+      cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
+      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+      flux_path: 'clusters/ephemeral'
+      flux_branch: 'main'
+      app_namespace: 'ephemeral'
+    secrets:
+      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+      flux_github_token: ${{ secrets.FLUX_GITHUB_TOKEN }}
 
   # run-tests:
   #   name: Run Integration Tests
