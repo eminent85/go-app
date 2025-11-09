@@ -188,7 +188,7 @@ jobs:
 
   cleanup:
     name: Cleanup Ephemeral Cluster
-    needs: [create-cluster]
+    needs: [create-cluster, bootstrap-flux]
     if: always()
     uses: eminent85/terraform-infra/.github/workflows/destroy-ephemeral-cluster.yml@main
     permissions:
