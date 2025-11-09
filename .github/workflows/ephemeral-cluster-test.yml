@@ -22,7 +22,8 @@ jobs:
       zone: ${{ vars.GCP_ZONE }}
       enable_bastion: false
       project_id: ${{ vars.GCP_PROJECT_ID }}
-    secrets: inherit
+    secrets:
+      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
 
   # bootstrap-flux:
   #   name: Bootstrap FluxCD
