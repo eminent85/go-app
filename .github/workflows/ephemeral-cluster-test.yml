@@ -6,16 +6,11 @@ on:
       - dev
   workflow_dispatch:
 
-env:
-  TERRAFORM_INFRA_REPO: 'eminent85/terraform-infra'
-  HELM_CD_REPO: 'eminent85/helm-cd'
-  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-
 jobs:
   create-cluster:
     name: Create Ephemeral GKE Cluster
     uses: eminent85/terraform-infra/.github/workflows/create-ephemeral-cluster.yml@main
-    environment: gcp-eminent
+    enivronment: gcp-eminent
     permissions:
       id-token: write
       contents: read
@@ -25,15 +20,17 @@ jobs:
       machine_type: 'e2-medium'
       min_nodes: 1
       max_nodes: 3
-      region: 'us-central1'
-      zone: 'us-central1-a'
+      region: ${{ vars.GCP_REGION }}
+      zone: ${{ vars.GCP_ZONE }}
       enable_bastion: false
-    secrets: inherit
+      project_id: ${{ vars.GCP_PROJECT_ID }}
+      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
 
   bootstrap-flux:
     name: Bootstrap FluxCD
     needs: create-cluster
     uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
+    enivronment: gcp-eminent
     permissions:
       id-token: write
       contents: write
@@ -44,9 +41,8 @@ jobs:
       flux_path: './clusters/ephemeral'
       flux_branch: 'main'
       app_namespace: 'ephemeral'
-    secrets:
-      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      FLUX_GITHUB_TOKEN: ${{ secrets.FLUX_GITHUB_TOKEN }}
+      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+      flux_github_token: ${{ secrets.FLUX_GITHUB_TOKEN }}
 
   run-tests:
     name: Run Integration Tests
@@ -195,12 +191,13 @@ jobs:
     needs: [create-cluster, run-tests]
     if: always()
     uses: eminent85/terraform-infra/.github/workflows/destroy-ephemeral-cluster.yml@main
-    environment: gcp-eminent
     permissions:
       id-token: write
       contents: read
     with:
       cluster_identifier: pr-${{ github.event.pull_request.number || github.run_number }}
       terraform_version: '1.5.0'
-      region: 'us-central1'
-    secrets: inherit
+      region: ${{ vars.GCP_REGION }}
+      project_id: ${{ vars.GCP_PROJECT_ID }}
+      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+
