@@ -17,6 +17,7 @@ jobs:
     uses: eminent85/terraform-infra/.github/workflows/create-ephemeral-cluster.yml@main
     permissions:
       id-token: write
+      contents: read
     with:
       cluster_identifier: pr-${{ github.event.pull_request.number || github.run_number }}
       terraform_version: '1.5.0'
@@ -192,6 +193,7 @@ jobs:
     uses: eminent85/terraform-infra/.github/workflows/destroy-ephemeral-cluster.yml@main
     permissions:
       id-token: write
+      contents: read
     with:
       cluster_identifier: pr-${{ github.event.pull_request.number || github.run_number }}
       terraform_version: '1.5.0'
