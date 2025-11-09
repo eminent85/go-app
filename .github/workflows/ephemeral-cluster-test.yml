@@ -15,6 +15,7 @@ jobs:
   create-cluster:
     name: Create Ephemeral GKE Cluster
     uses: eminent85/terraform-infra/.github/workflows/create-ephemeral-cluster.yml@main
+    environment: gcp-eminent
     permissions:
       id-token: write
       contents: read
@@ -194,6 +195,7 @@ jobs:
     needs: [create-cluster, run-tests]
     if: always()
     uses: eminent85/terraform-infra/.github/workflows/destroy-ephemeral-cluster.yml@main
+    environment: gcp-eminent
     permissions:
       id-token: write
       contents: read
