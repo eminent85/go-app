@@ -22,8 +22,7 @@ jobs:
       zone: ${{ vars.GCP_ZONE }}
       enable_bastion: false
       project_id: ${{ vars.GCP_PROJECT_ID }}
-    secrets:
-      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+    secrets: inherit
 
   # bootstrap-flux:
   #   name: Bootstrap FluxCD
@@ -199,6 +198,5 @@ jobs:
       terraform_version: '1.5.0'
       region: ${{ vars.GCP_REGION }}
       project_id: ${{ vars.GCP_PROJECT_ID }}
-    secrets:
-      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+    secrets: inherit
 
