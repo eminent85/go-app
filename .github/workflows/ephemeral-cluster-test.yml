@@ -33,6 +33,9 @@ jobs:
     name: Bootstrap FluxCD
     needs: create-cluster
     uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
+    permissions:
+      id-token: write
+      contents: write
     with:
       cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
       cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
