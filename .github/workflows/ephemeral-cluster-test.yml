@@ -34,7 +34,7 @@ jobs:
       contents: write
     with:
       cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
-      cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
+      cluster_zone: ${{ needs.create-cluster.outputs.cluster_location }}
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
       flux_path: 'clusters/ephemeral'
       flux_branch: 'main'
