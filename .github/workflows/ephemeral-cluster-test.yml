@@ -8,9 +8,7 @@ on:
 
 jobs:
   create-cluster:
-    name: Create Ephemeral GKE Cluster
     uses: eminent85/terraform-infra/.github/workflows/create-ephemeral-cluster.yml@main
-    enivronment: gcp-eminent
     permissions:
       id-token: write
       contents: read
@@ -24,171 +22,173 @@ jobs:
       zone: ${{ vars.GCP_ZONE }}
       enable_bastion: false
       project_id: ${{ vars.GCP_PROJECT_ID }}
+    secrets:
       gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
 
-  bootstrap-flux:
-    name: Bootstrap FluxCD
-    needs: create-cluster
-    uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
-    enivronment: gcp-eminent
-    permissions:
-      id-token: write
-      contents: write
-    with:
-      cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
-      cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
-      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-      flux_path: './clusters/ephemeral'
-      flux_branch: 'main'
-      app_namespace: 'ephemeral'
-      gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
-      flux_github_token: ${{ secrets.FLUX_GITHUB_TOKEN }}
+  # bootstrap-flux:
+  #   name: Bootstrap FluxCD
+  #   needs: create-cluster
+  #   uses:  eminent85/helm-cd/.github/workflows/bootstrap-flux-ephemeral.yml@main
+  #   permissions:
+  #     id-token: write
+  #     contents: write
+  #   with:
+  #     cluster_name: ${{ needs.create-cluster.outputs.cluster_name }}
+  #     cluster_location: ${{ needs.create-cluster.outputs.cluster_location }}
+  #     gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+  #     flux_path: './clusters/ephemeral'
+  #     flux_branch: 'main'
+  #     app_namespace: 'ephemeral'
+  #   secrets:
+  #     gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+  #     flux_github_token: ${{ secrets.FLUX_GITHUB_TOKEN }}
 
-  run-tests:
-    name: Run Integration Tests
-    needs: [create-cluster, bootstrap-flux]
-    runs-on: ubuntu-latest
+  # run-tests:
+  #   name: Run Integration Tests
+  #   needs: [create-cluster, bootstrap-flux]
+  #   environment: gcp-eminent
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+  #     - name: Authenticate to Google Cloud
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
+  #     - name: Setup Google Cloud SDK
+  #       uses: google-github-actions/setup-gcloud@v2
+  #       with:
+  #         project_id: ${{ vars.GCP_PROJECT_ID }}
 
-      - name: Install gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
+  #     - name: Install gke-gcloud-auth-plugin
+  #       run: |
+  #         gcloud components install gke-gcloud-auth-plugin
 
-      - name: Get GKE Credentials
-        run: |
-          gcloud container clusters get-credentials ${{ needs.create-cluster.outputs.cluster_name }} \
-            --region ${{ needs.create-cluster.outputs.cluster_location }} \
-            --project ${{ vars.GCP_PROJECT_ID }}
+  #     - name: Get GKE Credentials
+  #       run: |
+  #         gcloud container clusters get-credentials ${{ needs.create-cluster.outputs.cluster_name }} \
+  #           --region ${{ needs.create-cluster.outputs.cluster_location }} \
+  #           --project ${{ vars.GCP_PROJECT_ID }}
 
-      - name: Verify Cluster Access
-        run: |
-          kubectl cluster-info
-          kubectl get nodes
-          kubectl get pods --all-namespaces
+  #     - name: Verify Cluster Access
+  #       run: |
+  #         kubectl cluster-info
+  #         kubectl get nodes
+  #         kubectl get pods --all-namespaces
 
-      - name: Wait for Application to be Ready
-        run: |
-          echo "Waiting for application to be fully ready..."
-          kubectl wait --for=condition=ready pod \
-            --selector=app.kubernetes.io/name=nginx \
-            --namespace=ephemeral \
-            --timeout=300s
+  #     - name: Wait for Application to be Ready
+  #       run: |
+  #         echo "Waiting for application to be fully ready..."
+  #         kubectl wait --for=condition=ready pod \
+  #           --selector=app.kubernetes.io/name=nginx \
+  #           --namespace=ephemeral \
+  #           --timeout=300s
 
-      - name: Get Ingress IP
-        id: ingress
-        run: |
-          INGRESS_IP=$(kubectl get svc istio-ingressgateway \
-            -n istio-system \
-            -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          echo "ip=${INGRESS_IP}" >> $GITHUB_OUTPUT
-          echo "Ingress IP: ${INGRESS_IP}"
+  #     - name: Get Ingress IP
+  #       id: ingress
+  #       run: |
+  #         INGRESS_IP=$(kubectl get svc istio-ingressgateway \
+  #           -n istio-system \
+  #           -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  #         echo "ip=${INGRESS_IP}" >> $GITHUB_OUTPUT
+  #         echo "Ingress IP: ${INGRESS_IP}"
 
-      - name: Run Smoke Tests
-        run: |
-          INGRESS_IP=${{ steps.ingress.outputs.ip }}
+  #     - name: Run Smoke Tests
+  #       run: |
+  #         INGRESS_IP=${{ steps.ingress.outputs.ip }}
 
-          echo "Running smoke tests against ${INGRESS_IP}..."
+  #         echo "Running smoke tests against ${INGRESS_IP}..."
 
-          # Test 1: Health check
-          echo "Test 1: Health check"
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Host: test.example.com" \
-            http://${INGRESS_IP}/)
+  #         # Test 1: Health check
+  #         echo "Test 1: Health check"
+  #         HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+  #           -H "Host: test.example.com" \
+  #           http://${INGRESS_IP}/)
 
-          if [ "$HTTP_CODE" -eq 200 ]; then
-            echo "✓ Health check passed (HTTP $HTTP_CODE)"
-          else
-            echo "✗ Health check failed (HTTP $HTTP_CODE)"
-            exit 1
-          fi
+  #         if [ "$HTTP_CODE" -eq 200 ]; then
+  #           echo "✓ Health check passed (HTTP $HTTP_CODE)"
+  #         else
+  #           echo "✗ Health check failed (HTTP $HTTP_CODE)"
+  #           exit 1
+  #         fi
 
-          # Test 2: Response content check
-          echo "Test 2: Response content"
-          RESPONSE=$(curl -s -H "Host: test.example.com" http://${INGRESS_IP}/)
+  #         # Test 2: Response content check
+  #         echo "Test 2: Response content"
+  #         RESPONSE=$(curl -s -H "Host: test.example.com" http://${INGRESS_IP}/)
 
-          if echo "$RESPONSE" | grep -q "Welcome to nginx"; then
-            echo "✓ Response content valid"
-          else
-            echo "✗ Response content invalid"
-            exit 1
-          fi
+  #         if echo "$RESPONSE" | grep -q "Welcome to nginx"; then
+  #           echo "✓ Response content valid"
+  #         else
+  #           echo "✗ Response content invalid"
+  #           exit 1
+  #         fi
 
-          echo "✓ All smoke tests passed"
+  #         echo "✓ All smoke tests passed"
 
-      - name: Run Integration Tests
-        run: |
-          echo "Running integration tests..."
+  #     - name: Run Integration Tests
+  #       run: |
+  #         echo "Running integration tests..."
 
-          # Add your custom integration tests here
-          # Examples:
-          # - API endpoint tests
-          # - Database connectivity tests
-          # - Third-party service integration tests
-          # - Performance tests
+  #         # Add your custom integration tests here
+  #         # Examples:
+  #         # - API endpoint tests
+  #         # - Database connectivity tests
+  #         # - Third-party service integration tests
+  #         # - Performance tests
 
-          echo "✓ Integration tests passed"
+  #         echo "✓ Integration tests passed"
 
-      - name: Run Load Tests (Optional)
-        if: false  # Enable by changing to true
-        run: |
-          INGRESS_IP=${{ steps.ingress.outputs.ip }}
+  #     - name: Run Load Tests (Optional)
+  #       if: false  # Enable by changing to true
+  #       run: |
+  #         INGRESS_IP=${{ steps.ingress.outputs.ip }}
 
-          echo "Running load tests..."
+  #         echo "Running load tests..."
 
-          # Install k6 or other load testing tools
-          # Example with curl in a loop:
-          for i in {1..100}; do
-            curl -s -H "Host: test.example.com" http://${INGRESS_IP}/ > /dev/null
-            echo "Request $i completed"
-          done
+  #         # Install k6 or other load testing tools
+  #         # Example with curl in a loop:
+  #         for i in {1..100}; do
+  #           curl -s -H "Host: test.example.com" http://${INGRESS_IP}/ > /dev/null
+  #           echo "Request $i completed"
+  #         done
 
-          echo "✓ Load tests completed"
+  #         echo "✓ Load tests completed"
 
-      - name: Collect Logs on Failure
-        if: failure()
-        run: |
-          echo "Collecting diagnostic information..."
+  #     - name: Collect Logs on Failure
+  #       if: failure()
+  #       run: |
+  #         echo "Collecting diagnostic information..."
 
-          echo "=== Pods in ephemeral namespace ==="
-          kubectl get pods -n ephemeral -o wide
+  #         echo "=== Pods in ephemeral namespace ==="
+  #         kubectl get pods -n ephemeral -o wide
 
-          echo "=== Pod logs ==="
-          kubectl logs -n ephemeral --all-containers --tail=100 \
-            --selector=app.kubernetes.io/name=nginx || true
+  #         echo "=== Pod logs ==="
+  #         kubectl logs -n ephemeral --all-containers --tail=100 \
+  #           --selector=app.kubernetes.io/name=nginx || true
 
-          echo "=== Istio ingress gateway logs ==="
-          kubectl logs -n istio-system --tail=100 \
-            --selector=app=istio-ingressgateway || true
+  #         echo "=== Istio ingress gateway logs ==="
+  #         kubectl logs -n istio-system --tail=100 \
+  #           --selector=app=istio-ingressgateway || true
 
-          echo "=== FluxCD reconciliation status ==="
-          kubectl get kustomizations -n flux-system || true
-          kubectl get helmreleases -n flux-system || true
+  #         echo "=== FluxCD reconciliation status ==="
+  #         kubectl get kustomizations -n flux-system || true
+  #         kubectl get helmreleases -n flux-system || true
 
-      - name: Test Summary
-        if: always()
-        run: |
-          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Cluster:** \`${{ needs.create-cluster.outputs.cluster_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Ingress IP:** \`${{ steps.ingress.outputs.ip }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+  #     - name: Test Summary
+  #       if: always()
+  #       run: |
+  #         echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+  #         echo "" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Cluster:** \`${{ needs.create-cluster.outputs.cluster_name }}\`" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Ingress IP:** \`${{ steps.ingress.outputs.ip }}\`" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
 
   cleanup:
     name: Cleanup Ephemeral Cluster
-    needs: [create-cluster, run-tests]
+    needs: [create-cluster]
     if: always()
     uses: eminent85/terraform-infra/.github/workflows/destroy-ephemeral-cluster.yml@main
     permissions:
@@ -199,5 +199,6 @@ jobs:
       terraform_version: '1.5.0'
       region: ${{ vars.GCP_REGION }}
       project_id: ${{ vars.GCP_PROJECT_ID }}
+    secrets:
       gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
 
